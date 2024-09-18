@@ -20,3 +20,43 @@ if (song) {
         avt.style.animationPlayState = 'paused';
     })
 }
+
+// like
+const buttonLike = document.querySelector("[button-like]");
+if (buttonLike) {
+    buttonLike.addEventListener("click", () => {
+        const active = buttonLike.classList.contains("active");
+        let type = "";
+
+        if (!active) {
+            buttonLike.classList.add("active");
+            type = "like"
+        } else {
+            buttonLike.classList.remove("active");
+            type = "dislike";
+        }
+        const id = buttonLike.getAttribute("button-like");
+        const data = {
+            id: id,
+            type: type
+        }
+        fetch(`/songs/like`, {
+                method: "PATCH",
+
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.code == 200) {
+                    const like = document.querySelector(".inner-number");
+                    like.innerHTML = `${data.like}`
+                } else {
+                    console.log('ok');
+                }
+            })
+    })
+}
+//end like

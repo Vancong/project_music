@@ -71,3 +71,41 @@ export const detail = async (req: Request, res: Response) => {
         res.redirect("back");
     }
 };
+
+// [GET] /songs/like/:id
+export const like = async (req: Request, res: Response) => {
+    const id = req.body.id;
+    const type = req.body.type;
+    const music = await songDtb.findOne({
+        _id: id,
+        status: "active",
+        deleted: false,
+    });
+    let like = music.like;
+    if (type == "like") {
+        like = like + 1;
+        await songDtb.updateOne(
+            {
+                _id: id,
+            },
+            {
+                like: like,
+            }
+        );
+    } else {
+        like = like - 1;
+        await songDtb.updateOne(
+            {
+                _id: id,
+            },
+            {
+                like: like,
+            }
+        );
+    }
+
+    res.json({
+        code: 200,
+        like: like,
+    });
+};
