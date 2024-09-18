@@ -60,3 +60,30 @@ if (buttonLike) {
     })
 }
 //end like
+
+// favourite
+const buttonFavourite = document.querySelector("[button-favourite]");
+if (buttonFavourite) {
+    buttonFavourite.addEventListener("click", () => {
+        buttonFavourite.classList.add("active");
+        const id = buttonFavourite.getAttribute("button-favourite");
+        const data = {
+            id: id
+        }
+        fetch("/songs/favourite", {
+                method: "PATCH",
+
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.code == 200) {
+                    buttonFavourite.classList.remove("active");
+                }
+            })
+    })
+}
+// favourite

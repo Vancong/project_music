@@ -17,10 +17,15 @@ block main
               <i class="fa-solid fa-music"></i> #{topic.title}
             div(class="inner-action inner-like" button-like=song.id)
               <i class="fa-regular fa-thumbs-up inner-like "></i>
-              <span class="inner-number mr-1 ">#{song.like}</span> thích
-            div(class="inner-action inner-heart")
-              <i class="fa-regular fa-heart"></i> Bài hát yêu thích
+              <span class="inner-number mr-1 ">#{song.like}</span> thích 
+            
 
+            if(favourite)
+              div(class="inner-action inner-heart active" button-favourite=song.id)
+                <i class="fa-regular fa-heart"></i> Bài hát yêu thích
+            else 
+              div(class="inner-action inner-heart " button-favourite=song.id)
+                <i class="fa-regular fa-heart"></i> Bài hát yêu thích 
           .inner-play
             .inner-avatar
               img(src=song.avatar)

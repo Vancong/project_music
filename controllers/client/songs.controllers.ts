@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import songDtb from "../../modules/songs.modules";
 import topicDtb from "../../modules/topics.model";
 import singerDtb from "../../modules/singer.modules";
+import favoriteSongDtb from "../../modules/favorite-song.moudels";
 // [GET] /songs/:slugTopic
 export const index = async (req: Request, res: Response) => {
     try {
@@ -43,7 +44,7 @@ export const index = async (req: Request, res: Response) => {
     }
 };
 
-// [GET] /songs/detail/:slugSong
+// [PATCH] /songs/detail/:slugSong
 export const detail = async (req: Request, res: Response) => {
     try {
         const slugSong = req.params.slugSong;
@@ -61,18 +62,32 @@ export const detail = async (req: Request, res: Response) => {
                 _id: song.topicId,
             })
             .select("title");
+
+        let favourite = "";
+        const user = res.locals.user;
+        if (user) {
+            const checkFavourite = await favoriteSongDtb.findOne({
+                userId: user.id,
+                songId: song.id,
+            });
+            if (checkFavourite) {
+                favourite = "1";
+            }
+        }
+
         res.render("client/page/songs/detail", {
             pageTitle: "Chi tiet bai hat",
             song: song,
             topic: topic,
             singer: singer,
+            favourite: favourite,
         });
     } catch (error) {
         res.redirect("back");
     }
 };
 
-// [GET] /songs/like/:id
+// [GET] /songs/like
 export const like = async (req: Request, res: Response) => {
     const id = req.body.id;
     const type = req.body.type;
@@ -107,5 +122,34 @@ export const like = async (req: Request, res: Response) => {
     res.json({
         code: 200,
         like: like,
+    });
+};
+
+// [GET] /songs/favourite
+export const favourite = async (req: Request, res: Response) => {
+    const id: string = req.body.id;
+    const user = res.locals.user;
+    const checkFavourite = await favoriteSongDtb.findOne({
+        songId: id,
+        userId: user.id,
+    });
+    const data = {
+        songId: id,
+        userId: user.id,
+    };
+    if (!checkFavourite) {
+        const favorite = new favoriteSongDtb(data);
+        await favorite.save();
+        return;
+    }
+
+    await favoriteSongDtb.deleteOne({
+        songId: id,
+        userId: user.id,
+    });
+
+    res.json({
+        code: 200,
+        message: "dis",
     });
 };
