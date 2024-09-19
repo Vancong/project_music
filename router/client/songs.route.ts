@@ -5,14 +5,8 @@ const router = express.Router();
 
 router.get("/:slugTopic", songsControllers.index);
 
-router.get(
-    "/detail/:slugSong",
-    checkMiddl.checkFavourite,
-    songsControllers.detail
-);
+router.get("/detail/:slugSong", songsControllers.detail);
 
-router.patch("/like", checkMiddl.checkFavourite, songsControllers.like);
-
-router.patch("/favourite", checkMiddl.Auth, songsControllers.favourite);
+router.patch("/like", checkMiddl.Auth, songsControllers.like);
 
 export const routerSongs = router;

@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import userDtb from "../modules/user.modules";
+
 export const Auth = async (req: Request, res: Response, next: NextFunction) => {
     const token = req.cookies.token;
     if (!token) {
@@ -18,11 +19,7 @@ export const Auth = async (req: Request, res: Response, next: NextFunction) => {
     next();
 };
 
-export const checkFavourite = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
+export const user = async (req: Request, res: Response, next: NextFunction) => {
     if (req.cookies.token) {
         const user = await userDtb.findOne({
             token: req.cookies.token,

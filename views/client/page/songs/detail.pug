@@ -14,11 +14,18 @@ block main
             div(class="inner-action inner-singer")
               <i class="fa-solid fa-microphone-lines"></i> #{singer.fullName}
             div(class="inner-action inner-topic")
-              <i class="fa-solid fa-music"></i> #{topic.title}
-            div(class="inner-action inner-like" button-like=song.id)
-              <i class="fa-regular fa-thumbs-up inner-like "></i>
-              <span class="inner-number mr-1 ">#{song.like}</span> thích 
-            
+              <i class="fa-solid fa-music"></i> #{topic.title} #{checkLike}
+
+            if(checkLike)
+              div(class="inner-action inner-like active" button-like=song.id)
+                <i class="fa-regular fa-thumbs-up inner-like active"></i>
+                <span class="inner-number mr-1 ">#{song.like}</span> thích 
+            else 
+              div(class="inner-action inner-like" button-like=song.id)
+                <i class="fa-regular fa-thumbs-up inner-like"></i>
+                <span class="inner-number mr-1 ">#{song.like}</span> thích 
+
+          
 
             if(favourite)
               div(class="inner-action inner-heart active" button-favourite=song.id)

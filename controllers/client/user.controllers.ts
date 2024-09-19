@@ -39,13 +39,21 @@ export const login = async (req: Request, res: Response) => {
 //[PATCH] /user/login
 export const loginPatch = async (req: Request, res: Response) => {
     const email: string = req.body.email;
-    const password: string = md5(req.body.password);
+    let password = req.body.password;
+    if (password) {
+        password = md5(req.body.password);
+    }
     const existEmail = await userDtb.findOne({
         email: email,
     });
-    if (!existEmail || password != existEmail.password) {
-        res.redirect("back");
-        // req.falsh("error","Sai email hoac mat khau")
+    if (!existEmail) {
+        res.redirect("/user/login");
+        // req.falsh("error","Sai email)
+        return;
+    }
+    if (password != existEmail.password) {
+        res.redirect("/user/login");
+        // req.falsh("error","Sai mat khau")
         return;
     }
     res.cookie("token", existEmail.token);

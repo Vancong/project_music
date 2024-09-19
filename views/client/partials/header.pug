@@ -14,11 +14,18 @@ header.header
             li
               a(href="/topics") Chủ đề
 
+          
             li
-              a(href="/user/register") Đăng ký
-            
-            li
-             a(href="/user/login") Đăng nhập
+              a(href="/favourite") Yêu thích
 
-            li
-             a(href="/user/logout") Đăng xuất
+            if(user)
+              li
+               a(href="/user/logout") Đăng xuất
+              li
+               a(href="/user/porfile") #{user.fullName}
+            else 
+                li
+                  a(href="/user/register") Đăng ký
+            
+                li
+                  a(href="/user/login") Đăng nhập

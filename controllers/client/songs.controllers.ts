@@ -3,6 +3,7 @@ import songDtb from "../../modules/songs.modules";
 import topicDtb from "../../modules/topics.model";
 import singerDtb from "../../modules/singer.modules";
 import favoriteSongDtb from "../../modules/favorite-song.moudels";
+import likeSongDtb from "../../modules/like-song.modules";
 // [GET] /songs/:slugTopic
 export const index = async (req: Request, res: Response) => {
     try {
@@ -25,7 +26,7 @@ export const index = async (req: Request, res: Response) => {
                 deleted: false,
                 status: "active",
             })
-            .select("title avatar like singerId slug");
+            .select("title avatar  singerId slug");
 
         for (const item of song) {
             const singerData = await singerDtb
@@ -34,6 +35,14 @@ export const index = async (req: Request, res: Response) => {
                 })
                 .select("fullName");
             item["singerFullName"] = singerData["fullName"];
+            const totalLike = await likeSongDtb.findOne({
+                songId: item.id,
+            });
+            let like = 0;
+            if (totalLike) {
+                like = totalLike.like.length;
+            }
+            item["like"] = like + 2815;
         }
         res.render("client/page/songs/list.pug", {
             pageTitle: "Danh sach bai hat",
@@ -52,6 +61,15 @@ export const detail = async (req: Request, res: Response) => {
             slug: slugSong,
         });
 
+        const totalLike = await likeSongDtb.findOne({
+            songId: song.id,
+        });
+        let like = 0;
+        if (totalLike) {
+            like = totalLike.like.length;
+        }
+        song["like"] = like + 2815;
+
         const singer = await singerDtb
             .findOne({
                 _id: song.singerId,
@@ -64,7 +82,8 @@ export const detail = async (req: Request, res: Response) => {
             .select("title");
 
         let favourite = "";
-        const user = res.locals.user;
+        let checkLike = "";
+        let user = res.locals.user;
         if (user) {
             const checkFavourite = await favoriteSongDtb.findOne({
                 userId: user.id,
@@ -73,6 +92,15 @@ export const detail = async (req: Request, res: Response) => {
             if (checkFavourite) {
                 favourite = "1";
             }
+
+            const checkLikeDtb = await likeSongDtb.findOne({
+                songId: song.id,
+                like: user.id,
+            });
+
+            if (checkLikeDtb) {
+                checkLike = "1";
+            }
         }
 
         res.render("client/page/songs/detail", {
@@ -80,6 +108,7 @@ export const detail = async (req: Request, res: Response) => {
             song: song,
             topic: topic,
             singer: singer,
+            checkLike: checkLike,
             favourite: favourite,
         });
     } catch (error) {
@@ -87,69 +116,69 @@ export const detail = async (req: Request, res: Response) => {
     }
 };
 
-// [GET] /songs/like
+// [PATCH] /songs/like
 export const like = async (req: Request, res: Response) => {
     const id = req.body.id;
-    const type = req.body.type;
-    const music = await songDtb.findOne({
-        _id: id,
-        status: "active",
-        deleted: false,
-    });
-    let like = music.like;
-    if (type == "like") {
-        like = like + 1;
-        await songDtb.updateOne(
-            {
-                _id: id,
-            },
-            {
-                like: like,
-            }
-        );
-    } else {
-        like = like - 1;
-        await songDtb.updateOne(
-            {
-                _id: id,
-            },
-            {
-                like: like,
-            }
-        );
-    }
-
-    res.json({
-        code: 200,
-        like: like,
-    });
-};
-
-// [GET] /songs/favourite
-export const favourite = async (req: Request, res: Response) => {
-    const id: string = req.body.id;
     const user = res.locals.user;
-    const checkFavourite = await favoriteSongDtb.findOne({
+
+    // check xem user da like songId nay chua
+    const likeSongUser = await likeSongDtb.findOne({
         songId: id,
-        userId: user.id,
+        like: user.id,
     });
-    const data = {
+
+    //check xem songId nay da ton tai trong dtb chua
+    const likeSong = await likeSongDtb.findOne({
         songId: id,
-        userId: user.id,
-    };
-    if (!checkFavourite) {
-        const favorite = new favoriteSongDtb(data);
-        await favorite.save();
-        return;
+    });
+    let status = "";
+    if (!likeSong) {
+        status = "like";
+        const data = {
+            songId: id,
+            like: [user.id],
+        };
+        const newLikeSong = new likeSongDtb(data);
+        await newLikeSong.save();
+    } else {
+        if (!likeSongUser) {
+            status = "like";
+            await likeSongDtb.updateOne(
+                {
+                    songId: id,
+                },
+                {
+                    $push: {
+                        like: user.id,
+                    },
+                }
+            );
+        } else {
+            status = "dislike";
+            await likeSongDtb.updateOne(
+                {
+                    songId: id,
+                },
+                {
+                    $pull: {
+                        like: user.id,
+                    },
+                }
+            );
+        }
     }
 
-    await favoriteSongDtb.deleteOne({
-        songId: id,
-        userId: user.id,
-    });
-
+    let like = 0;
+    if (likeSong) {
+        const likeDb = await likeSongDtb.findOne({
+            songId: id,
+        });
+        like = likeDb.like.length;
+    }
+    like += 2185;
     res.json({
         code: 200,
-        message: "dis",
+        status: status,
+        like: like,
     });
 };

@@ -25,20 +25,10 @@ if (song) {
 const buttonLike = document.querySelector("[button-like]");
 if (buttonLike) {
     buttonLike.addEventListener("click", () => {
-        const active = buttonLike.classList.contains("active");
-        let type = "";
 
-        if (!active) {
-            buttonLike.classList.add("active");
-            type = "like"
-        } else {
-            buttonLike.classList.remove("active");
-            type = "dislike";
-        }
         const id = buttonLike.getAttribute("button-like");
         const data = {
-            id: id,
-            type: type
+            id: id
         }
         fetch(`/songs/like`, {
                 method: "PATCH",
@@ -52,9 +42,19 @@ if (buttonLike) {
             .then(data => {
                 if (data.code == 200) {
                     const like = document.querySelector(".inner-number");
-                    like.innerHTML = `${data.like}`
-                } else {
-                    console.log('ok');
+                    like.innerHTML = `${data.like}`;
+
+                    const iconLike = buttonLike.querySelector(".inner-like");
+                    if (data.status == "like") {
+                        buttonLike.classList.add("active");
+
+                        iconLike.classList.add("active");
+                    } else {
+                        buttonLike.classList.remove("active");
+
+                        iconLike.classList.remove("active");
+                    }
+
                 }
             })
     })
@@ -62,28 +62,38 @@ if (buttonLike) {
 //end like
 
 // favourite
-const buttonFavourite = document.querySelector("[button-favourite]");
-if (buttonFavourite) {
-    buttonFavourite.addEventListener("click", () => {
-        buttonFavourite.classList.add("active");
-        const id = buttonFavourite.getAttribute("button-favourite");
-        const data = {
-            id: id
-        }
-        fetch("/songs/favourite", {
-                method: "PATCH",
+const listButtonFavourite = document.querySelectorAll("[button-favourite]");
+if (listButtonFavourite) {
+    listButtonFavourite.forEach((buttonFavourite) => {
+        buttonFavourite.addEventListener("click", () => {
 
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(data)
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.code == 200) {
-                    buttonFavourite.classList.remove("active");
-                }
-            })
-    })
+            const id = buttonFavourite.getAttribute("button-favourite");
+            const data = {
+                id: id
+            }
+            fetch("/favourite", {
+                    method: "PATCH",
+
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.code == 200) {
+
+                        if (data.status == "tym") {
+
+                            buttonFavourite.classList.add("active");
+                        } else {
+                            buttonFavourite.classList.remove("active");
+                        }
+
+                    }
+                })
+        })
+    });
+
 }
 // favourite
