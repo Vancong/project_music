@@ -5,52 +5,82 @@ import singerDtb from "../../modules/singer.modules";
 import favoriteSongDtb from "../../modules/favorite-song.moudels";
 import likeSongDtb from "../../modules/like-song.modules";
 // [GET] /songs/:slugTopic
+// export const index = async (req: Request, res: Response) => {
+//     try {
+//         const slug: string = req.params.slugTopic;
+//         const topic = await topicDtb
+//             .findOne({
+//                 slug: slug,
+//                 deleted: false,
+//                 status: "active",
+//             })
+//             .select("title avatar like");
+
+//         const song = await songDtb
+//             .find({
+//                 topicId: topic.id,
+//                 deleted: false,
+//                 status: "active",
+//             })
+//             .select("title avatar  singerId slug");
+
+//         for (const item of song) {
+//             const singerData = await singerDtb
+//                 .findOne({
+//                     _id: item.singerId,
+//                 })
+//                 .select("fullName");
+//             item["singerFullName"] = singerData["fullName"];
+//             const totalLike = await likeSongDtb.findOne({
+//                 songId: item.id,
+//             });
+//             let like = 0;
+//             if (totalLike) {
+//                 like = totalLike.like.length;
+//             }
+//             item["like"] = like + 2815;
+//         }
+//         res.render("client/page/songs/list.pug", {
+//             pageTitle: "Danh sach bai hat",
+//             songs: song,
+//         });
+//     } catch (error) {}
+// };
+
 export const index = async (req: Request, res: Response) => {
-    try {
-        const slug: string = req.params.slugTopic;
-        const topic = await topicDtb
-            .findOne({
-                slug: slug,
-                deleted: false,
-                status: "active",
-            })
-            .select("title avatar like");
-        if (!topic) {
-            res.redirect("back");
-            return;
-        }
-
-        const song = await songDtb
-            .find({
-                topicId: topic.id,
-                deleted: false,
-                status: "active",
-            })
-            .select("title avatar  singerId slug");
-
-        for (const item of song) {
-            const singerData = await singerDtb
-                .findOne({
-                    _id: item.singerId,
-                })
-                .select("fullName");
-            item["singerFullName"] = singerData["fullName"];
-            const totalLike = await likeSongDtb.findOne({
-                songId: item.id,
-            });
-            let like = 0;
-            if (totalLike) {
-                like = totalLike.like.length;
-            }
-            item["like"] = like + 2815;
-        }
-        res.render("client/page/songs/list.pug", {
-            pageTitle: "Danh sach bai hat",
-            songs: song,
-        });
-    } catch (error) {
-        res.redirect("back");
+    const slugTopic = req.params.slugTopic;
+    const topic = await topicDtb.findOne({
+        slug: slugTopic,
+        deleted: false,
+        status: "active",
+    });
+    // console.log(topic);
+    if (!topic) {
+        console.log("k co");
+        console.log(topic);
+        const referrer = req.get("Referrer") || "/";
+        res.redirect(referrer);
+        return;
     }
+    const songs = await songDtb
+        .find({
+            topicId: topic.id,
+            deleted: false,
+            status: "active",
+        })
+        .select("title avatar singerId like slug");
+    for (const item of songs) {
+        const singerInfo = await singerDtb
+            .findOne({
+                _id: item.singerId,
+            })
+            .select("fullName");
+        item["singerFullName"] = singerInfo["fullName"];
+    }
+    res.render("client/page/songs/list", {
+        pageTitle: topic.title,
+        songs: songs,
+    });
 };
 
 // [PATCH] /songs/detail/:slugSong
@@ -180,5 +210,32 @@ export const like = async (req: Request, res: Response) => {
         code: 200,
         status: status,
         like: like,
+    });
+};
+
+// [GET] /songs/search
+export const search = async (req: Request, res: Response) => {
+    const keyword = req.query.keyword;
+
+    const regex = new RegExp(`${keyword}`, "i");
+    const songs = await songDtb
+        .find({
+            title: regex,
+            deleted: false,
+            status: "active",
+        })
+        .select("title avatar singerId like slug");
+    for (const item of songs) {
+        const singerInfo = await singerDtb
+            .findOne({
+                _id: item.singerId,
+            })
+            .select("fullName");
+        item["singerFullName"] = singerInfo["fullName"];
+    }
+    res.render("client/page/songs/list.pug", {
+        pageTitle: `Kết quả tìm kiếm ${keyword}`,
+        keyword: keyword,
+        songs: songs,
     });
 };
