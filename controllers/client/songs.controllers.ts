@@ -4,6 +4,7 @@ import topicDtb from "../../modules/topics.model";
 import singerDtb from "../../modules/singer.modules";
 import favoriteSongDtb from "../../modules/favorite-song.moudels";
 import likeSongDtb from "../../modules/like-song.modules";
+import unidecode from "unidecode";
 // [GET] /songs/:slugTopic
 // export const index = async (req: Request, res: Response) => {
 //     try {
@@ -56,8 +57,6 @@ export const index = async (req: Request, res: Response) => {
     });
     // console.log(topic);
     if (!topic) {
-        console.log("k co");
-        console.log(topic);
         const referrer = req.get("Referrer") || "/";
         res.redirect(referrer);
         return;
@@ -215,27 +214,90 @@ export const like = async (req: Request, res: Response) => {
 
 // [GET] /songs/search
 export const search = async (req: Request, res: Response) => {
-    const keyword = req.query.keyword;
-
-    const regex = new RegExp(`${keyword}`, "i");
-    const songs = await songDtb
-        .find({
-            title: regex,
+    const type = req.params.type;
+    const keyword = `${req.query.keyword}`.trim();
+    let songFinal = [];
+    if (keyword) {
+        // tìm theo tên ca sĩ
+        let singer = keyword;
+        singer = unidecode(singer);
+        let regexSinger = new RegExp(singer, "i");
+        let singerSlug = singer.replace(/\s/g, "-");
+        singerSlug = singerSlug.replace(/-+/g, "-");
+        let regexSingerSlug = new RegExp(singerSlug, "i"); //"i " k phan biet chu hoa hay chu thuong
+        let dataSinger = await singerDtb.find({
+            $or: [
+                {
+                    fullName: regexSinger,
+                },
+                {
+                    slug: regexSingerSlug,
+                },
+            ],
             deleted: false,
             status: "active",
-        })
-        .select("title avatar singerId like slug");
-    for (const item of songs) {
-        const singerInfo = await singerDtb
-            .findOne({
-                _id: item.singerId,
+        });
+        const IdSinger = dataSinger.map((item) => item.id); // lay ra mang id singer co ten nhu the
+
+        // tìm theo tên bài hát
+        const regexTitle = new RegExp(keyword, "i");
+        let keywordSlug = keyword;
+        keywordSlug = unidecode(keyword); // bỏ dấu
+        keywordSlug = keywordSlug.replace(/\s/g, "-"); // \s ki tu khoang cach  thay the "-"
+        keywordSlug = keywordSlug.replace(/-+/g, "-"); // tim tat ca dau tru và thay thế
+
+        const regexSlug = new RegExp(`${keywordSlug}`, "i");
+        const songs = await songDtb
+            .find({
+                $or: [
+                    {
+                        title: regexTitle,
+                    },
+                    {
+                        slug: regexSlug,
+                    },
+                    {
+                        singerId: { $in: IdSinger },
+                    },
+                ],
+                deleted: false,
+                status: "active",
             })
-            .select("fullName");
-        item["singerFullName"] = singerInfo["fullName"];
+            .select("title avatar singerId like slug");
+
+        for (const item of songs) {
+            const singerInfo = await singerDtb
+                .findOne({
+                    _id: item.singerId,
+                })
+                .select("fullName");
+            // tra ve theo api phai tao ra object moi, khong duoc dung object cua dtb || bao mat
+            const itemFinal = {
+                title: item.title,
+                avatar: item.avatar,
+                like: item.like,
+                slug: item.slug,
+                singerId: item.singerId,
+                singerFullName: singerInfo["fullName"],
+            };
+            songFinal.push(itemFinal);
+        }
     }
-    res.render("client/page/songs/list.pug", {
-        pageTitle: `Kết quả tìm kiếm ${keyword}`,
-        keyword: keyword,
-        songs: songs,
-    });
+
+    if (type == "result") {
+        res.render("client/page/songs/list.pug", {
+            pageTitle: `Kết quả tìm kiếm : ${keyword}`,
+            keyword: keyword,
+            songs: songFinal,
+        });
+    } else if (type == "suggest") {
+        res.json({
+            code: 200,
+            songs: songFinal,
+        });
+    } else {
+        res.json({
+            code: 400,
+        });
+    }
 };
