@@ -39,6 +39,7 @@ if (song) {
             });
         }, time);
     })
+
     ap.on("pause", () => {
         avt.style.animationPlayState = 'paused';
     });

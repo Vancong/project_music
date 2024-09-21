@@ -4,6 +4,8 @@ import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
 import methodOverride from "method-override";
+import { systemConfig } from "./config/system.config";
+import { routeAdmin } from "./router/admin/index.route";
 dotenv.config();
 const app: Express = express();
 const port: number | string = process.env.PORT || 3000;
@@ -20,6 +22,9 @@ app.use(express.static("public"));
 
 import { routeClinet } from "./router/client/index.route";
 routeClinet(app);
+
+routeAdmin(app);
+app.locals.prefixAdmin = systemConfig.prefixAdmin;
 
 connectDtb();
 
