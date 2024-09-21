@@ -3,6 +3,8 @@ import express from "express";
 import * as checkMiddl from "../../middlewares/checkauthen.middlewares";
 const router = express.Router();
 
+router.patch("/listen", songsControllers.listen);
+
 router.get("/search/:type", songsControllers.search);
 
 router.get("/:slugTopic", songsControllers.index);

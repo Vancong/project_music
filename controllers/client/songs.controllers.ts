@@ -301,3 +301,24 @@ export const search = async (req: Request, res: Response) => {
         });
     }
 };
+
+//[PTACH] //songs/list
+export const listen = async (req: Request, res: Response) => {
+    const songId = req.body.songId;
+    const song = await songDtb.findOne({
+        _id: songId,
+    });
+    const listen = song.listen + 1;
+    await songDtb.updateOne(
+        {
+            _id: songId,
+        },
+        {
+            listen: listen,
+        }
+    );
+    res.json({
+        code: 200,
+        listen: listen,
+    });
+};

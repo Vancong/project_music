@@ -15,10 +15,36 @@ if (song) {
     const avt = document.querySelector(".singer-detail .inner-avatar");
     ap.on("play", () => {
         avt.style.animationPlayState = 'running';
+        const time = ap.audio.duration * 1 / 5 * 1000;
+        setTimeout(() => {
+            ap.on('ended', () => {
+                const data = {
+                    songId: songId
+                }
+                fetch(`/songs/listen`, {
+                        method: "PATCH",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(data)
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.code == 200) {
+                            const boxAction = document.querySelector(".inner-action.inner-listen");
+                            const innerListen = boxAction.querySelector(".inner-number");
+                            innerListen.innerHTML = `${data.listen}`;
+                        }
+                    })
+            });
+        }, time);
     })
     ap.on("pause", () => {
         avt.style.animationPlayState = 'paused';
-    })
+    });
+
+    const songId = document.querySelector("[songId]").getAttribute("songId");
+
 }
 
 // like
