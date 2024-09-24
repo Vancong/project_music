@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import songDtb from "../../modules/songs.modules";
 import singerDtb from "../../modules/singer.modules";
 import topicDtb from "../../modules/topics.model";
-
+import { systemConfig } from "../../config/system.config";
 //[GET] /admin/songs
 export const index = async (req: Request, res: Response) => {
     const songs = await songDtb.find({
@@ -47,4 +47,11 @@ export const create = async (req: Request, res: Response) => {
         topics: topics,
         singers: singers,
     });
+};
+
+//[POST] /admin/cratePost
+export const createPost = async (req: Request, res: Response) => {
+    const song = new songDtb(req.body);
+    await song.save();
+    res.redirect(`/${systemConfig.prefixAdmin}/songs`);
 };
