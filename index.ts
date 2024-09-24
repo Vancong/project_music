@@ -4,8 +4,10 @@ import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
 import methodOverride from "method-override";
+import path from "path";
 import { systemConfig } from "./config/system.config";
 import { routeAdmin } from "./router/admin/index.route";
+
 dotenv.config();
 const app: Express = express();
 const port: number | string = process.env.PORT || 3000;
@@ -19,6 +21,11 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 app.set("view engine", "pug");
 app.use(express.static("public"));
+
+app.use(
+    "/tinymce",
+    express.static(path.join(__dirname, "node_modules", "tinymce"))
+);
 
 import { routeClinet } from "./router/client/index.route";
 routeClinet(app);

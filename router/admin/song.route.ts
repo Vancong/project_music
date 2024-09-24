@@ -5,4 +5,6 @@ const router = express.Router();
 
 router.get("/", songControllers.index);
 
+router.get("/create", songControllers.create);
+
 export const routerSong = router;
