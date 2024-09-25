@@ -12,8 +12,17 @@ router.get("/create", songControllers.create);
 
 router.post(
     "/create",
-    upload.single("avatar"),
-    uploadCoud.uploadSingle,
+    upload.fields([
+        {
+            name: "avatar",
+            maxCount: 1,
+        },
+        {
+            name: "audio",
+            maxCount: 1,
+        },
+    ]),
+    uploadCoud.uploadFields,
     songControllers.createPost
 );
 

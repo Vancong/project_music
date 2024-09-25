@@ -16,3 +16,20 @@ export const uploadSingle = (
         next();
     }
 };
+
+export const uploadFields = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    for (const key in req["files"]) {
+        req.body[key] = [];
+        const array = req["files"][key];
+        for (const element of array) {
+            const result = await streamUpload(element.buffer);
+            req.body[key].push(result["url"]);
+        }
+    }
+
+    next();
+};
